@@ -1,7 +1,7 @@
 import { Module, OnModuleInit } from '@nestjs/common';
 import { RabbitMQModule } from '@golevelup/nestjs-rabbitmq';
 import { ElasticsearchModule } from '@nestjs/elasticsearch';
-import { SearchService } from './search.service';
+import { WorkerService } from './worker.service';
 
 @Module({
   imports: [
@@ -20,7 +20,6 @@ import { SearchService } from './search.service';
         cloud: {
           id: 'tuannt02-elasticsearch:dXMtY2VudHJhbDEuZ2NwLmNsb3VkLmVzLmlvOjQ0MyQ5YWY5NTExYmY2YTQ0MzdlOGU2YWUzODBjNTc1YTE0OSRmM2ZiNjNmZDJmZmY0NGEyYjJiMjE2YTEyMjE2Y2FmYQ==',
         },
-        node: 'https://tuannt02-elasticsearch.es.us-central1.gcp.cloud.es.io/',
         auth: {
           username: 'elastic',
           password: '6mGdrrDqKUBMCysKeu61xaby',
@@ -28,11 +27,11 @@ import { SearchService } from './search.service';
       }),
     }),
   ],
-  providers: [SearchService],
+  providers: [WorkerService],
   exports: [ElasticsearchModule],
 })
-export class SearchModule implements OnModuleInit {
-  constructor(private readonly searchService: SearchService) {}
+export class WorkerModule implements OnModuleInit {
+  constructor(private readonly searchService: WorkerService) {}
   public async onModuleInit() {
     await this.searchService.createIndex();
   }
