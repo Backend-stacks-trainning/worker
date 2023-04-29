@@ -4,7 +4,12 @@ import { ElasticsearchService } from '@nestjs/elasticsearch';
 
 interface ISendEvent {
   msg: string;
-  data: object;
+  data: Todo;
+}
+interface Todo {
+  todoId: string;
+  title?: string;
+  timestamp?: string;
 }
 
 @Injectable()
@@ -19,6 +24,26 @@ export class WorkerService {
     console.log(`Received message: ${payload.msg}`);
 
     await this.indexTodo(payload.data);
+  }
+
+  @RabbitSubscribe({
+    exchange: 'exchange1',
+    routingKey: 'todo_updated',
+  })
+  public async todoUpdatedHandler(payload: ISendEvent) {
+    console.log(`Received message: ${payload.msg}`);
+
+    await this.updateTodo(payload.data);
+  }
+
+  @RabbitSubscribe({
+    exchange: 'exchange1',
+    routingKey: 'todo_deleted',
+  })
+  public async todoDeletedHandler(payload: ISendEvent) {
+    console.log(`Received message: ${payload.msg}`);
+
+    await this.deleteTodo(payload.data);
   }
 
   // Create index
@@ -40,9 +65,7 @@ export class WorkerService {
                     ignore_above: 256,
                   },
                 },
-              },
-              title_keyword: {
-                type: 'keyword',
+                fielddata: true,
               },
             },
           },
@@ -52,10 +75,32 @@ export class WorkerService {
   }
 
   // Add todo to ES
-  public async indexTodo(todo: any) {
+  public async indexTodo(todo: Todo) {
     return await this.esService.index({
       index: 'todo',
-      body: todo,
+      id: todo.todoId,
+      body: { title: todo.title, timestamp: todo.timestamp },
+    });
+  }
+
+  // Update todo to ES
+  public async updateTodo(todo: Todo) {
+    return await this.esService.update({
+      index: 'todo',
+      id: todo.todoId,
+      body: {
+        doc: {
+          title: todo.title,
+        },
+      },
+    });
+  }
+
+  // Delete todo to ES
+  public async deleteTodo(todo: Todo) {
+    return await this.esService.delete({
+      index: 'todo',
+      id: todo.todoId,
     });
   }
 }

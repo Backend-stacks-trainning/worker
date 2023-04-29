@@ -31,8 +31,8 @@ import { WorkerService } from './worker.service';
   exports: [ElasticsearchModule],
 })
 export class WorkerModule implements OnModuleInit {
-  constructor(private readonly searchService: WorkerService) {}
+  constructor(private readonly workerService: WorkerService) {}
   public async onModuleInit() {
-    await this.searchService.createIndex();
+    await this.workerService.createIndex();
   }
 }
