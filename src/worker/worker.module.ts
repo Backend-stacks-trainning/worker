@@ -2,27 +2,34 @@ import { Module, OnModuleInit } from '@nestjs/common';
 import { RabbitMQModule } from '@golevelup/nestjs-rabbitmq';
 import { ElasticsearchModule } from '@nestjs/elasticsearch';
 import { WorkerService } from './worker.service';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 
 @Module({
   imports: [
-    RabbitMQModule.forRoot(RabbitMQModule, {
-      exchanges: [
-        {
-          name: 'exchange1',
-          type: 'topic',
-        },
-      ],
-      uri: 'amqp://localhost:5672',
-      connectionInitOptions: { wait: false },
+    RabbitMQModule.forRootAsync(RabbitMQModule, {
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: async (configService: ConfigService) => ({
+        exchanges: [
+          {
+            name: 'exchange1',
+            type: 'topic',
+          },
+        ],
+        uri: configService.get<string>('RABBITMQ_URI'),
+        connectionInitOptions: { wait: false },
+      }),
     }),
     ElasticsearchModule.registerAsync({
-      useFactory: async () => ({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: async (configService: ConfigService) => ({
         cloud: {
-          id: 'tuannt02-elasticsearch:dXMtY2VudHJhbDEuZ2NwLmNsb3VkLmVzLmlvOjQ0MyQ5YWY5NTExYmY2YTQ0MzdlOGU2YWUzODBjNTc1YTE0OSRmM2ZiNjNmZDJmZmY0NGEyYjJiMjE2YTEyMjE2Y2FmYQ==',
+          id: configService.get<string>('ES_CLOUD_ID'),
         },
         auth: {
-          username: 'elastic',
-          password: '6mGdrrDqKUBMCysKeu61xaby',
+          username: configService.get<string>('ES_AUTH_USERNAME'),
+          password: configService.get<string>('ES_AUTH_PASSWORD'),
         },
       }),
     }),
