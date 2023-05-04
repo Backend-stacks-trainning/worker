@@ -10,13 +10,15 @@ COPY tsconfig.build.json ./
 
 # install dependencies
 RUN npm install
-RUN npm run build
 
 # copy app source code
 COPY . .
 
-# expose port 3001
-EXPOSE 3001
+# build ts -> js
+RUN npm run build
+
+# expose port 4000
+EXPOSE 4000
 
 # start the app
 CMD ["npm", "run", "start:prod"]
